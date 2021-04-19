@@ -5,7 +5,7 @@ CONFIG = {
     'Where': '',
     # 'Where' : 'in-All-Sydney-NSW',
 
-    'Daterange': '7',
+    'Daterange': '31',
     # 'Daterange' : '14',
     # 'Daterange' : '31',
 }

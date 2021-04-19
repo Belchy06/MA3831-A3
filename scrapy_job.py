@@ -45,7 +45,7 @@ def mainHtml(url, total_num, citizen_num):
 		else:
 			desc_parent = desc_title.find_parent('div')
 			job_description = desc_parent.find_next_sibling("div")
-		desc_text = re.sub('\xa0', ' ', job_description.text)
+		desc_text = re.sub('\xa0', ' ', " ".join(item.strip() for item in job_description.find_all(text=True)))
 		print(re.sub('[ ]{2, }', ' ', desc_text.strip()))
 		total_num = total_num + 1
 
@@ -67,7 +67,7 @@ def mainHtml(url, total_num, citizen_num):
 	return total_num, citizen_num
 
 
-f = open(__file__[:-3] + '.html', 'w')
+f = open(__file__[:-3] + '.html', 'w', encoding='utf-8')
 # header of html with Bootstrap 4
 f.write('''
 <html lang="en">
