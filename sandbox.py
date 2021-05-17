@@ -63,3 +63,13 @@ if __name__ == '__main__':
         print('Skills required: ')
         print(experience_list)
         print('-' * 200)
+
+
+# JJ -> NN
+# JJ -> NNS
+# NN
+#
+#
+# managing budgets
+#
+# marketing experience
