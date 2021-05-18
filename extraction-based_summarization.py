@@ -11,8 +11,7 @@ if __name__ == '__main__':
     for index, row in data.iterrows():
         print(row.DESCRIPTION)
 
-        formatted_article_text = re.sub('[^a-zA-Z]', ' ', row.DESCRIPTION)
-        formatted_article_text = re.sub(r'\s+', ' ', formatted_article_text)
+        formatted_article_text = row.DESCRIPTION
         sentence_list = nltk.sent_tokenize(row.DESCRIPTION)
 
         word_frequencies = {}
@@ -36,10 +35,8 @@ if __name__ == '__main__':
                     else:
                         sentence_scores[sent] += word_frequencies[word]
 
-
         summary_sentences = heapq.nlargest(7, sentence_scores, key=sentence_scores.get)
         summary = '\r\n'.join(summary_sentences)
         print()
         print(summary)
-
         print()

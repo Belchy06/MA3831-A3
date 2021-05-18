@@ -135,7 +135,7 @@ if __name__ == '__main__':
         tr4w = TextRank4Keyword()
         tr4w.analyze(text, allowed_pos=['NN', 'NNP', 'VB'], window_size=4, lower=False)
         print('"{}" in {} - {}'.format(row.TITLE.strip(), row.FIELD, row['SUB-FIELD']))
-        keywords = tr4w.get_keywords(10)
-        data.loc[index, 'KEYWORDS'] = keywords
+        keywords = tr4w.get_keywords(20)
+        data.loc[index, 'KEYWORDS'] = ', '.join(keywords)
         print(keywords)
-    data.to_csv('keywords', index=False, encoding='utf-8-sig')
+    data.to_csv('keywords.csv', index=False, encoding='utf-8-sig')
