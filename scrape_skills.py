@@ -30,7 +30,7 @@ if __name__ == "__main__":
     for key, val in url_dict.items():
         request = urllib.request.Request(url=val, headers=headers)
         response = urllib.request.urlopen(request)
-        temp_html = response.read().decode()
+        temp_html = response.read().decode()    
         temp_html = BeautifulSoup(temp_html, "lxml")
         lis = temp_html.find_all('li', attrs={'class': None})
         lis_text = [x.text.lower() for x in lis]

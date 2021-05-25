@@ -32,10 +32,7 @@ def get_classification_urls(file):
             # Remove the categories for 'all jobs in {field}' or 'other'
             if label[0:3] == 'all' or label[0:5] == 'other':
                 continue
-            label = re.sub(r'[\/]', ' ', label)
-            label = re.sub(r'[&]', ' ', label)
-            label = re.sub(r'[-]', ' ', label)
-            label = re.sub(r'[,]', ' ', label)
+            label = re.sub(r'[/&-,]', ' ', label)
             label = re.sub(r'[\']', '', label)
             label = re.sub(r'[ ]{2,}', ' ', label)
             label = re.sub(r'[ ]', '-', label.strip())
