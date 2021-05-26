@@ -4,7 +4,6 @@ import urllib
 
 from bs4 import BeautifulSoup
 import re
-import requests
 import pandas as pd
 import os
 import traceback
@@ -18,48 +17,39 @@ def check_has_numbers(input_string):
     return bool(re.search(r'\d', input_string))
 
 
-def get_classification_urls(file):
+def extract_nav():
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'}
+    request = urllib.request.Request(url='https://seek.com.au', headers=headers)
+    response = urllib.request.urlopen(request)
+    res_html = response.read().decode()
+    soup = BeautifulSoup(res_html, "lxml")
+    nav = soup.find('nav', attrs={"data-automation": "searchClassification"})
+    return nav
+
+
+def get_classification_urls(navElement):
     urls = []
-    with open(file, 'r') as nav:
-        soup = BeautifulSoup(nav, 'html.parser')
-        # print(soup.prettify())
-        els = soup.find_all('a')
-        indent = False
-        classification = ""
-        subclassification = ""
-        for el in els:
-            label = el['aria-label'].lower()
-            # Remove the categories for 'all jobs in {field}' or 'other'
-            if label[0:3] == 'all' or label[0:5] == 'other':
-                continue
-            label = re.sub(r'[/&-,]', ' ', label)
-            label = re.sub(r'[\']', '', label)
-            label = re.sub(r'[ ]{2,}', ' ', label)
-            label = re.sub(r'[ ]', '-', label.strip())
-            if not check_has_numbers(label):
-                # Is the field
-                classification = 'jobs-in-' + label
-                # print('\n')
-                # print(classification)
-            else:
-                # is the sub-field
-                label = re.sub(r'[0-9](.*)', '', label)
-                subclassification = label[:-1]
-                single_url = classification + '/' + subclassification
-                urls.append([classification, subclassification])
-                # print('\t' + single_url)
+    soup = BeautifulSoup(navElement, 'html.parser')
+    els = soup.find_all('a')
+    classification = ""
+    for el in els:
+        label = el['aria-label'].lower()
+        # Remove the categories for 'all jobs in {field}' or 'other'
+        if label[0:3] == 'all' or label[0:5] == 'other':
+            continue
+        label = re.sub(r'[/&-,]', ' ', label)
+        label = re.sub(r'[\']', '', label)
+        label = re.sub(r'[ ]{2,}', ' ', label)
+        label = re.sub(r'[ ]', '-', label.strip())
+        if not check_has_numbers(label):
+            classification = 'jobs-in-' + label
+        else:
+            # is the sub-field
+            label = re.sub(r'[0-9](.*)', '', label)
+            subclassification = label[:-1]
+            urls.append([classification, subclassification])
     return urls
-
-
-def get_valid_urls(urls):
-    valid_list = []
-    for url in urls:
-        single_page_url = "https://www.seek.com.au/" + url[0] + '/' + url[1]
-        response = requests.get(single_page_url)
-        if response.status_code == requests.codes.ok:
-            print('Valid: ' + "https://www.seek.com.au/" + url[0] + '/' + url[1])
-            valid_list.append([url[0], url[1]])
-    return valid_list
 
 
 def thread_function(index, data):
@@ -78,7 +68,10 @@ def thread_function(index, data):
             sub_field_total = 0
             prev_sub_field = url[1]
 
-        for page_num in range(1, 3):
+        page_num = 1
+        while True:
+            if sub_field_total == POST_PER_SUB_FIELD:
+                break
             seek_url = ''.join([
                 "https://www.seek.com.au/",
                 url[0] + '/' + url[1],
@@ -114,6 +107,8 @@ def thread_function(index, data):
                         desc_title = single_temp_html.find('h2', text='Job description')
                         if desc_title is None:
                             job_description = single_temp_html.find(attrs={"data-automation": "jobDescription"})
+                            if job_description is None:
+                                job_description = single_temp_html.find(attrs={"data-automation": "jobAdDetails"})
                         else:
                             desc_parent = desc_title.find_parent('div')
                             job_description = desc_parent.find_next_sibling("div")
@@ -122,7 +117,7 @@ def thread_function(index, data):
                         desc_text = re.sub('[ ]{2,}', ' ', desc_text.strip())
                         fields = [url[0],  # Field
                                   url[1],  # Sub-field
-                                  job_title,  # Job tite
+                                  job_title,  # Job title
                                   desc_text]  # Job description
                         with open(r'output{}.csv'.format(index), 'a', newline='', encoding='utf-8-sig') as file:
                             w = csv.writer(file, delimiter=',')
@@ -136,13 +131,15 @@ def thread_function(index, data):
                     except Exception:
                         print('{} failed, URL: {}'.format(job_title, single_page_url))
                         traceback.print_exc()
+                page_num = page_num + 1
             except Exception:
                 print(url[0] + '/' + url[1] + ' failed')
                 traceback.print_exc()
 
 
 if __name__ == '__main__':
-    classification_urls = get_classification_urls('nav.html')
+    nav = extract_nav()
+    classification_urls = get_classification_urls(nav)
     # valid_urls = get_valid_urls(classification_urls)
     valid_urls = classification_urls
 
@@ -152,6 +149,7 @@ if __name__ == '__main__':
     # Split dataframe into equal amounts
     n = int(len(classification_urls) / MAX_THREADS) + 1
     list_urls = [classification_urls[i:i + n] for i in range(0, len(classification_urls), n)]
+    # thread_function(0, valid_urls)
     # Instantiate threads
     threads = list()
     for idx in range(MAX_THREADS):
