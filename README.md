@@ -2,10 +2,9 @@
 This assignment required the use of a web scraper and the implementation of several Natural Language Processing techniques
 
 ## How it works
-The file ```nav.html``` contains the classification selector from Seek.com.au.
-```get_job_postings.py``` breaks down the classification selector to identify each field and sub-field.
-The URLs are constructed based on the fields and sub-fields indentified.
+Read through the jupyter notebooks:
+- Task 1
+- Task 2
+- Task 3
 
-For each of the URLs, the scraper grabs a maximum of the 25 most recent job postings for that sub-field.
-The postings title and description are stored alongside the field and sub-field in the ```job_data.csv``` file.
-
+For an interactive view of how everything works or read the PDFs in the PDFs folder to see the output and what the running code produces
